@@ -24,13 +24,6 @@ export default function ImagePreviewModal({ open, src, alt, onClose }: ImagePrev
     }
   }, [open, src, alt]);
 
-  useEffect(() => {
-    const viewport = preview.viewportRef.current;
-    if (!open || !viewport) return;
-    viewport.addEventListener("wheel", preview.handleWheel, { passive: false });
-    return () => viewport.removeEventListener("wheel", preview.handleWheel);
-  }, [open, preview.handleWheel]);
-
   function handleClose() {
     preview.close();
     onClose();
@@ -38,9 +31,9 @@ export default function ImagePreviewModal({ open, src, alt, onClose }: ImagePrev
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="max-w-[1120px] p-4" onMouseDown={(e) => e.stopPropagation()}>
+      <DialogContent className="max-w-[1120px] p-4 !overflow-hidden [&>button.absolute]:hidden" onMouseDown={(e) => e.stopPropagation()}>
         <DialogHeader className="flex-row items-center justify-between">
-          <DialogTitle className="truncate text-sm font-medium text-slate-700">{alt}</DialogTitle>
+          <DialogTitle className="truncate text-sm font-medium text-foreground">{alt}</DialogTitle>
           <div className="flex items-center gap-2">
             <Badge variant="outline">{Math.round(preview.scale * 100)}%</Badge>
             <Button variant="ghost" size="sm" onClick={() => preview.fitToViewport()}>重置</Button>
@@ -51,13 +44,14 @@ export default function ImagePreviewModal({ open, src, alt, onClose }: ImagePrev
         <div
           ref={preview.viewportRef}
           className={cn(
-            "relative flex h-[76vh] items-center justify-center overflow-hidden rounded-2xl bg-white/45",
+            "relative flex h-[76vh] items-center justify-center overflow-hidden rounded-2xl bg-muted/30",
             preview.isDragging ? "cursor-grabbing" : "cursor-grab"
           )}
+          onWheel={preview.handleWheel}
           onPointerDown={preview.handlePointerDown}
           onPointerMove={preview.handlePointerMove}
           onPointerUp={preview.handlePointerUp}
-          onPointerCancel={() => { preview.handlePointerUp as unknown as () => void; }}
+          onPointerCancel={preview.handlePointerCancel}
         >
           {preview.image && (
             <img

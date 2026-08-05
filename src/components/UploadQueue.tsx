@@ -1,7 +1,5 @@
 import { useRef } from "react";
-import { Upload, Copy } from "lucide-react";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
+import { Upload, Copy, Plus } from "lucide-react";
 import { Badge } from "../components/ui/badge";
 import { cn } from "../lib/utils";
 import { formatBytes } from "../utils/format";
@@ -45,114 +43,116 @@ export default function UploadQueue({
   const reversedItems = [...items].reverse();
 
   return (
-    <div className="glass-panel flex min-h-[260px] flex-col rounded-[28px] p-5 lg:min-h-0 lg:flex-1">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card">
       <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFilesSelected} />
 
-      <div className="mb-4 flex flex-col gap-3">
+      <div className="shrink-0 flex flex-col gap-3 p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-slate-950">处理队列</h2>
-            <p className="mt-1 text-xs text-slate-400">选择压缩方式后批量上传图片</p>
+            <h2 className="font-display text-lg tracking-tight">上传图片</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">压缩后自动上传到云存储</p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Button size="sm" onClick={() => fileInputRef.current?.click()}>
-              <Upload className="h-3.5 w-3.5" />
-              选择图片
-            </Button>
-            <Badge>{items.length}</Badge>
+            <Badge variant={items.length ? "primary" : "default"}>{items.length}</Badge>
             {isUploading && <Badge variant="warning">处理中</Badge>}
           </div>
         </div>
 
+        {/* Drop Zone */}
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-6 text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary"
+        >
+          <Plus className="h-6 w-6" strokeWidth={1.5} />
+          <span className="text-xs font-medium">拖入图片或点击选择</span>
+        </button>
+
         {/* Compression Mode */}
-        <div className="glass-inset flex flex-wrap gap-4 rounded-xl px-3 py-2">
-          <label className={cn("flex cursor-pointer items-center gap-2 text-xs font-medium text-blue-700")}>
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-3 py-2">
+          <span className="text-xs font-medium text-muted-foreground">压缩方式</span>
+          <label className={cn("flex cursor-pointer items-center gap-1.5 text-xs font-medium text-foreground")}>
             <input
               type="radio"
               name="compression"
               checked={compressionMode === "tinypng"}
               onChange={() => onCompressionModeChange("tinypng")}
               disabled={isUploading}
-              className="h-3.5 w-3.5 accent-blue-600"
+              className="h-3.5 w-3.5 accent-primary"
             />
-            TinyPNG 压缩
+            TinyPNG
           </label>
         </div>
 
         {/* Naming Settings */}
-        <div className="glass-inset flex items-center gap-2 rounded-xl px-3 py-2">
-          <label htmlFor="naming-prefix" className="shrink-0 text-xs font-medium text-slate-500">命名前缀</label>
+        <div className="flex items-center gap-2 text-xs">
+          <label htmlFor="naming-prefix" className="shrink-0 font-medium text-muted-foreground">命名</label>
           <input
             id="naming-prefix"
             value={namingPrefix}
             onChange={(e) => onNamingPrefixChange(e.target.value)}
-            placeholder="请输入命名前缀"
-            className="min-w-0 flex-1 bg-transparent text-[11px] text-slate-700 placeholder:text-slate-400 focus:outline-none"
+            placeholder="前缀"
+            className="min-w-0 flex-1 rounded-md border border-border bg-card px-2 py-1.5 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/10"
           />
-          <span className="text-xs text-slate-400">索引从</span>
+          <span className="text-muted-foreground">从</span>
           <input
             type="number"
             min={1}
             value={namingStartIndex}
             onChange={(e) => onNamingStartIndexChange(parseInt(e.target.value, 10) || 1)}
-            className="w-14 bg-transparent text-center text-[11px] text-emerald-500 focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            className="w-14 rounded-md border border-border bg-card px-2 py-1.5 text-center text-foreground focus:outline-none focus:ring-2 focus:ring-primary/10 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           />
-          <span className="text-xs text-slate-400">开始</span>
+          <span className="text-muted-foreground">开始</span>
         </div>
       </div>
 
+      {/* Queue List */}
       {items.length ? (
-        <div className="pretty-scrollbar h-full space-y-3 overflow-auto pr-1">
-          {reversedItems.map((item) => (
-            <div
-              key={item.id}
-              className={cn(
-                "rounded-2xl border px-4 py-3 animate-in fade-in slide-in-from-bottom-2",
-                item.status === "success" ? "border-emerald-200/70 bg-emerald-50/50" : "border-white/60 bg-white/28"
-              )}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="preview-trigger relative min-w-0">
-                  <p className="truncate text-sm font-medium">{item.name}</p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {formatBytes(item.originalSize)}
-                    {item.compressedSize ? ` → ${formatBytes(item.compressedSize)}` : ""}
-                  </p>
-                  {item.previewUrl && (
-                    <div className="preview-popover pointer-events-none absolute left-0 top-full z-20 mt-2 w-[200px] overflow-hidden rounded-xl border border-white/80 bg-white/90 p-2 opacity-0 shadow-xl backdrop-blur transition">
-                      <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg bg-slate-100">
-                        <img src={item.previewUrl} alt={item.name} className="h-full w-full object-contain" />
-                      </div>
-                      <p className="mt-2 truncate px-1 text-xs font-medium text-slate-700">{item.name}</p>
-                    </div>
-                  )}
+        <div className="pretty-scrollbar min-h-0 flex-1 overflow-auto border-t border-border px-4 pb-4 pt-2">
+          <div className="space-y-2">
+            {reversedItems.map((item) => (
+              <div
+                key={item.id}
+                className={cn(
+                  "rounded-xl border px-3 py-2.5 animate-in",
+                  item.status === "success" ? "border-emerald-200 bg-emerald-50/50" : "border-border bg-muted/20"
+                )}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{item.name}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {formatBytes(item.originalSize)}
+                      {item.compressedSize ? ` → ${formatBytes(item.compressedSize)}` : ""}
+                    </p>
+                  </div>
+                  <Badge variant={STATUS_CONFIG[item.status].variant} className="shrink-0 text-[10px]">
+                    {STATUS_CONFIG[item.status].label}
+                  </Badge>
                 </div>
-                <Badge variant={STATUS_CONFIG[item.status].variant}>
-                  {STATUS_CONFIG[item.status].label}
-                </Badge>
+                {item.error && <p className="mt-1.5 text-xs text-destructive">{item.error}</p>}
+                {item.httpsUrl && (
+                  <button
+                    type="button"
+                    onClick={() => onCopy(item.httpsUrl!)}
+                    className={cn(
+                      "mt-2.5 flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-1.5 text-left font-mono text-xs transition",
+                      copiedText === item.httpsUrl ? "border-emerald-200 bg-emerald-50/70 text-emerald-700" : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-primary"
+                    )}
+                  >
+                    <span className="min-w-0 truncate">{item.httpsUrl}</span>
+                    <span className="flex shrink-0 items-center gap-1 font-sans text-[11px] font-medium">
+                      <Copy className="h-3 w-3" />
+                      {copiedText === item.httpsUrl ? "已复制" : "复制"}
+                    </span>
+                  </button>
+                )}
               </div>
-              {item.error && <p className="mt-2 text-xs text-rose-600">{item.error}</p>}
-              {item.httpsUrl && (
-                <button
-                  type="button"
-                  onClick={() => onCopy(item.httpsUrl!)}
-                  className={cn(
-                    "glass-inset mt-3 flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left font-mono text-xs transition",
-                    copiedText === item.httpsUrl ? "border-emerald-200 bg-emerald-50/70 text-emerald-700" : "text-blue-600 hover:bg-white/55"
-                  )}
-                >
-                  <span className="min-w-0 truncate">{item.httpsUrl}</span>
-                  <span className="flex shrink-0 items-center gap-1 font-sans text-[11px] font-semibold">
-                    <Copy className="h-3 w-3" />
-                    {copiedText === item.httpsUrl ? "已复制" : "复制"}
-                  </span>
-                </button>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       ) : (
-        <EmptyState icon={Upload} title="暂无处理任务" description="点击选择图片或将多张图片拖入页面" />
+        <EmptyState icon={Upload} title="暂无处理任务" description="拖入图片或点击上方区域选择文件" />
       )}
     </div>
   );

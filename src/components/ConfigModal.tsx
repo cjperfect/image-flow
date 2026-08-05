@@ -33,6 +33,12 @@ const PROVIDER_FIELDS = {
   },
 } as const;
 
+interface ProviderOption { label: string; value: CloudProvider; desc: string }
+const PROVIDER_OPTIONS: ProviderOption[] = [
+  { label: "华为云 OBS", value: "obs", desc: "obs.cn-south-1" },
+  { label: "阿里云 OSS", value: "oss", desc: "oss-cn-hangzhou" },
+];
+
 interface ConfigModalProps {
   config: StorageConfig;
   activeFolderUrl: string;
@@ -71,7 +77,7 @@ export default function ConfigModal({
   useEffect(() => {
     if (!isHistoryOpen) return;
     function close(e: MouseEvent) {
-      if (!historyRef.current?.contains(e.target as Node)) setIsHistoryOpen(false);
+      if (e.target instanceof Node && !historyRef.current?.contains(e.target)) setIsHistoryOpen(false);
     }
     document.addEventListener("click", close, true);
     return () => document.removeEventListener("click", close, true);
@@ -79,7 +85,7 @@ export default function ConfigModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-[680px] p-6 md:p-8" onMouseDown={(e) => e.stopPropagation()}>
+      <DialogContent className="max-w-[680px] p-6 md:p-8">
         <DialogHeader>
           <DialogTitle>{fields.title}</DialogTitle>
           <DialogDescription className="mt-2">{fields.description}</DialogDescription>
@@ -88,10 +94,7 @@ export default function ConfigModal({
         <div className="mb-5">
           <Label className="mb-2 block">选择云存储服务商</Label>
           <div className="flex gap-3">
-            {[
-              { label: "华为云 OBS", value: "obs" as CloudProvider, desc: "obs.cn-south-1" },
-              { label: "阿里云 OSS", value: "oss" as CloudProvider, desc: "oss-cn-hangzhou" },
-            ].map((opt) => {
+            {PROVIDER_OPTIONS.map((opt) => {
               const selected = config.provider === opt.value;
               return (
                 <button
@@ -101,18 +104,18 @@ export default function ConfigModal({
                   className={cn(
                     "flex flex-1 items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition",
                     selected
-                      ? "border-blue-300 bg-blue-50/70 text-blue-800 shadow-sm"
-                      : "border-transparent bg-white/40 text-slate-600 hover:bg-white/70"
+                      ? "border-primary/30 bg-primary/5 text-foreground"
+                      : "border-border bg-card text-muted-foreground hover:border-primary/20"
                   )}
                 >
                   <span className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2",
-                    selected ? "border-blue-500" : "border-slate-300"
+                    selected ? "border-primary" : "border-muted-foreground/30"
                   )}>
-                    {selected && <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />}
+                    {selected && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
                   </span>
                   <div>
                     <span className="font-medium">{opt.label}</span>
-                    <span className="mt-0.5 block text-xs text-slate-400">{opt.desc}</span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">{opt.desc}</span>
                   </div>
                 </button>
               );
@@ -123,7 +126,7 @@ export default function ConfigModal({
         <div className="grid gap-4">
           <div>
             <Label className="mb-1.5 block">{fields.folderLabel}</Label>
-            <p className="mb-2 text-xs text-slate-400">{fields.folderDesc}</p>
+            <p className="mb-2 text-xs text-muted-foreground">{fields.folderDesc}</p>
             <div ref={historyRef} className="relative">
               <Input
                 value={config.folderUrl}
@@ -134,21 +137,21 @@ export default function ConfigModal({
               <button
                 type="button"
                 onClick={() => setIsHistoryOpen((v) => !v)}
-                className="absolute right-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-500 hover:bg-white/60 hover:text-blue-600"
+                className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
               >
-                <Clock className="h-5 w-5" strokeWidth={1.8} />
+                <Clock className="h-4 w-4" strokeWidth={1.8} />
               </button>
               {isHistoryOpen && (
-                <div className="glass-modal absolute left-0 right-0 top-full z-10 mt-2 overflow-hidden rounded-xl p-2 shadow-xl">
+                <div className="absolute left-0 right-0 top-full z-10 mt-2 overflow-hidden rounded-xl border border-border bg-card p-2 shadow-lg">
                   {folderHistory.length ? (
                     <>
                       <div className="flex items-center justify-between px-2 py-1.5">
-                        <p className="text-xs font-medium text-slate-500">历史记录</p>
+                        <p className="text-xs font-medium text-muted-foreground">历史记录</p>
                         <button
                           type="button"
                           onClick={onClearFolderHistory}
                           disabled={!folderHistory.some((u) => u !== activeFolderUrl)}
-                          className="rounded-md px-1.5 py-1 text-[11px] font-medium text-rose-500 hover:bg-rose-50/80 disabled:opacity-40"
+                          className="rounded-md px-1.5 py-1 text-[11px] font-medium text-destructive hover:bg-destructive/10 disabled:opacity-40"
                         >
                           清空其他
                         </button>
@@ -159,14 +162,14 @@ export default function ConfigModal({
                           return (
                             <div key={folderUrl} className={cn(
                               "group flex items-center gap-1 rounded-lg border",
-                              isActive ? "border-emerald-200/80 bg-emerald-50/80" : "border-transparent hover:bg-white/60"
+                              isActive ? "border-emerald-200 bg-emerald-50/80" : "border-transparent hover:bg-muted"
                             )}>
                               <button
                                 type="button"
                                 onClick={() => { onChange("folderUrl", folderUrl); setIsHistoryOpen(false); }}
                                 className={cn(
                                   "min-w-0 flex-1 truncate px-2 py-2.5 text-left font-mono text-xs",
-                                  isActive ? "font-medium text-emerald-700" : "text-slate-600 group-hover:text-blue-700"
+                                  isActive ? "font-medium text-emerald-700" : "text-muted-foreground group-hover:text-foreground"
                                 )}
                               >
                                 {folderUrl}
@@ -177,7 +180,7 @@ export default function ConfigModal({
                                 <button
                                   type="button"
                                   onClick={() => onDeleteFolderHistoryItem(folderUrl)}
-                                  className="mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-400 hover:bg-rose-50/80 hover:text-rose-600"
+                                  className="mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                                 >
                                   <Trash2 className="h-4 w-4" strokeWidth={1.8} />
                                 </button>
@@ -188,7 +191,7 @@ export default function ConfigModal({
                       </div>
                     </>
                   ) : (
-                    <p className="px-2 py-3 text-xs text-slate-400">暂无历史记录</p>
+                    <p className="px-2 py-3 text-xs text-muted-foreground">暂无历史记录</p>
                   )}
                 </div>
               )}
@@ -197,7 +200,7 @@ export default function ConfigModal({
 
           <div>
             <Label className="mb-1.5 block">{fields.endpointLabel}</Label>
-            <p className="mb-2 text-xs text-slate-400">{fields.endpointDesc}</p>
+            <p className="mb-2 text-xs text-muted-foreground">{fields.endpointDesc}</p>
             <Input
               value={config.endpoint}
               readOnly={fields.endpointReadOnly}
@@ -218,7 +221,7 @@ export default function ConfigModal({
         </div>
 
         {errorMessage && (
-          <p className="mt-4 rounded-xl bg-rose-50/75 px-4 py-3 text-sm text-rose-700">{errorMessage}</p>
+          <p className="mt-4 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">{errorMessage}</p>
         )}
 
         <div className="mt-6 flex justify-end gap-3">

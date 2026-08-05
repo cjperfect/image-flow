@@ -42,7 +42,7 @@ export function useImagePreview() {
 
   const close = useCallback(() => setImage(null), []);
 
-  const handleWheel = useCallback((event: WheelEvent) => {
+  const handleWheel = useCallback((event: React.WheelEvent | WheelEvent) => {
     event.preventDefault();
     setScale((prev) => Math.min(4, Math.max(0.1, prev * (event.deltaY < 0 ? 1.1 : 0.9))));
   }, []);
@@ -61,13 +61,21 @@ export function useImagePreview() {
     });
   }, []);
 
+  const cancelDrag = useCallback(() => {
+    dragRef.current = null;
+    setIsDragging(false);
+  }, []);
+
   const handlePointerUp = useCallback((event: React.PointerEvent) => {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
-    dragRef.current = null;
-    setIsDragging(false);
-  }, []);
+    cancelDrag();
+  }, [cancelDrag]);
+
+  const handlePointerCancel = useCallback(() => {
+    cancelDrag();
+  }, [cancelDrag]);
 
   const handleImageLoad = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
     const img = event.currentTarget;
@@ -95,6 +103,7 @@ export function useImagePreview() {
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
+    handlePointerCancel,
     handleImageLoad,
   };
 }

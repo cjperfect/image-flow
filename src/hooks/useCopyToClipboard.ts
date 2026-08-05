@@ -15,7 +15,7 @@ export function useCopyToClipboard() {
       timerRef.current = setTimeout(() => setCopiedText(""), 1600);
       toast("已复制到剪贴板");
     } catch (err) {
-      toast(err instanceof Error ? err.message : "复制失败", "destructive");
+      toast.error(err instanceof Error ? err.message : "复制失败");
     }
   }, []);
 

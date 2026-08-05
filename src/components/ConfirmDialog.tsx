@@ -34,7 +34,7 @@ export default function ConfirmDialog({
     <AlertDialog open={open} onOpenChange={(v) => !v && onCancel()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${variant === "destructive" ? "bg-rose-50 text-rose-500" : "bg-blue-50 text-blue-500"}`}>
+          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${variant === "destructive" ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}>
             <AlertTriangle className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
