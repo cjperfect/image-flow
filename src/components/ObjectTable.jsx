@@ -2,99 +2,32 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { formatBytes, formatDate, getFileName } from "../utils/format";
 
-function PreviewName({ copied, isRenaming, object, onCopy, onPreview, onRename }) {
+function PreviewName({ copied, object, onCopy, onPreview }) {
   const fileName = getFileName(object.Key);
-  const [isEditing, setIsEditing] = useState(false);
-  const [draftName, setDraftName] = useState(fileName);
-  const [error, setError] = useState("");
-
-  function startEditing() {
-    setDraftName(fileName);
-    setError("");
-    setIsEditing(true);
-  }
-
-  async function submitRename(event) {
-    event.preventDefault();
-    setError("");
-    try {
-      await onRename(object, draftName);
-      setIsEditing(false);
-    } catch (renameError) {
-      setError(renameError.message || "重命名失败");
-    }
-  }
-
-  if (isEditing) {
-    return (
-      <form onSubmit={submitRename} className="min-w-0">
-        <div className="flex min-w-0 items-center gap-2">
-          <input
-            autoFocus
-            value={draftName}
-            onChange={(event) => setDraftName(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") setIsEditing(false);
-            }}
-            disabled={isRenaming}
-            className="glass-input min-w-0 flex-1 rounded-md px-2 py-1 text-xs text-slate-800 outline-none transition focus:border-blue-300"
-          />
-          <button
-            type="submit"
-            disabled={isRenaming}
-            className="rounded-md bg-blue-600/90 px-2 py-1 text-[11px] font-medium text-white shadow-sm shadow-blue-600/10 transition hover:bg-blue-600 disabled:cursor-wait disabled:opacity-60"
-          >
-            保存
-          </button>
-          <button
-            type="button"
-            disabled={isRenaming}
-            onClick={() => setIsEditing(false)}
-            className="rounded-md px-2 py-1 text-[11px] font-medium text-slate-500 transition hover:bg-white/60 hover:text-slate-700 disabled:opacity-60"
-          >
-            取消
-          </button>
-        </div>
-        {error && <p className="mt-1 truncate text-xs text-rose-600">{error}</p>}
-      </form>
-    );
-  }
 
   return (
-    <div className="inline-flex max-w-full items-center gap-1.5">
-      <div className="name-preview-trigger relative min-w-0 max-w-full">
-        <button
-          type="button"
-          onClick={() => onCopy(fileName.replace(/\.[^.]+$/, ""))}
-          className={`name-preview-text inline-block max-w-full truncate rounded-md px-1 py-0.5 text-left text-sm font-medium transition ${
-            copied ? "bg-emerald-50/80 text-emerald-700" : "text-slate-800 hover:bg-white/60 hover:text-blue-700"
-          }`}
-          title="点击复制名称"
-        >
-          {fileName}
-        </button>
-        <div className="preview-popover pointer-events-none absolute left-full top-0 z-20 ml-3 w-[220px] overflow-hidden rounded-xl border border-white/80 bg-white/90 p-2 opacity-0 shadow-xl shadow-slate-900/10 backdrop-blur transition">
-          <button
-            type="button"
-            onClick={() => onPreview(object)}
-            className="pointer-events-auto flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-lg bg-slate-100"
-            title="点击预览"
-          >
-            <img src={object.httpsUrl} alt={fileName} className="h-full w-full object-contain" loading="lazy" />
-          </button>
-          <p className="mt-2 truncate px-1 text-xs font-medium text-slate-700">{fileName}</p>
-        </div>
-      </div>
+    <div className="name-preview-trigger relative inline-flex max-w-full">
       <button
         type="button"
-        onClick={startEditing}
-        disabled={isRenaming}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-sm text-slate-400 transition hover:text-blue-700 disabled:cursor-wait disabled:opacity-50"
-        aria-label="重命名"
-        title="重命名"
+        onClick={() => onCopy(fileName.replace(/\.[^.]+$/, ""))}
+        className={`name-preview-text inline-block max-w-full truncate rounded-md px-1 py-0.5 text-left text-sm font-medium transition ${
+          copied ? "bg-emerald-50/80 text-emerald-700" : "text-slate-800 hover:bg-white/60 hover:text-blue-700"
+        }`}
+        title="点击复制名称"
       >
-        ✎
+        {fileName}
       </button>
+      <div className="preview-popover pointer-events-none absolute left-full top-0 z-20 ml-3 w-[220px] overflow-hidden rounded-xl border border-white/80 bg-white/90 p-2 opacity-0 shadow-xl shadow-slate-900/10 backdrop-blur transition">
+        <button
+          type="button"
+          onClick={() => onPreview(object)}
+          className="pointer-events-auto flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-lg bg-slate-100"
+          title="点击预览"
+        >
+          <img src={object.httpsUrl} alt={fileName} className="h-full w-full object-contain" loading="lazy" />
+        </button>
+        <p className="mt-2 truncate px-1 text-xs font-medium text-slate-700">{fileName}</p>
+      </div>
     </div>
   );
 }
@@ -146,6 +79,9 @@ export default function ObjectTable({
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [previewImage, setPreviewImage] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [renameTarget, setRenameTarget] = useState(null);
+  const [renameDraft, setRenameDraft] = useState("");
+  const [renameError, setRenameError] = useState("");
   const [previewScale, setPreviewScale] = useState(1);
   const [previewSize, setPreviewSize] = useState({ width: 0, height: 0 });
   const [copyMode, setCopyMode] = useState(() => {
@@ -213,6 +149,23 @@ export default function ObjectTable({
     if (!deleteTarget) return;
     await onDelete(deleteTarget);
     setDeleteTarget(null);
+  }
+
+  function openRename(object) {
+    setRenameTarget(object);
+    setRenameDraft(getFileName(object.Key));
+    setRenameError("");
+  }
+
+  async function confirmRename(event) {
+    event.preventDefault();
+    setRenameError("");
+    try {
+      await onRename(renameTarget, renameDraft);
+      setRenameTarget(null);
+    } catch (renameErr) {
+      setRenameError(renameErr.message || "重命名失败");
+    }
   }
 
   return (
@@ -314,11 +267,9 @@ export default function ObjectTable({
                   <td className="min-w-0 px-5 py-4">
                     <PreviewName
                       copied={copiedText === getFileName(object.Key)}
-                      isRenaming={renamingKey === object.Key}
                       object={object}
                       onCopy={onCopy}
                       onPreview={openPreview}
-                      onRename={onRename}
                     />
                   </td>
                   <td className="px-4 py-4 text-sm text-slate-600">{formatBytes(Number(object.Size))}</td>
@@ -339,6 +290,14 @@ export default function ObjectTable({
                         className="text-sm font-medium text-blue-600 transition hover:text-blue-800"
                       >
                         预览
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openRename(object)}
+                        disabled={renamingKey === object.Key}
+                        className="text-sm font-medium text-amber-600 transition hover:text-amber-800 disabled:cursor-wait disabled:opacity-50"
+                      >
+                        {renamingKey === object.Key ? "修改中" : "编辑"}
                       </button>
                       <button
                         type="button"
@@ -405,6 +364,71 @@ export default function ObjectTable({
                   className="rounded-xl bg-rose-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-rose-500/20 transition hover:bg-rose-600 disabled:cursor-wait disabled:opacity-60"
                 >
                   {deletingKey === deleteTarget.Key ? "删除中" : "确认删除"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {renameTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/35 p-5 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 14, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.98 }}
+              transition={{ duration: 0.18 }}
+              className="glass-modal w-full max-w-[420px] rounded-[26px] p-6"
+            >
+              <div className="mb-5 flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-xl font-semibold text-amber-500">
+                  ✎
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-lg font-semibold tracking-tight text-slate-950">修改文件名</h3>
+                  <p className="mt-1 text-sm text-slate-500">
+                    当前文件：
+                    <span className="font-medium text-slate-800">{getFileName(renameTarget.Key)}</span>
+                  </p>
+                  <form onSubmit={confirmRename} className="mt-3">
+                    <input
+                      autoFocus
+                      value={renameDraft}
+                      onChange={(event) => setRenameDraft(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Escape") setRenameTarget(null);
+                      }}
+                      disabled={renamingKey === renameTarget.Key}
+                      className="glass-input w-full rounded-lg px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-300 disabled:opacity-60"
+                      placeholder="输入新的文件名"
+                    />
+                    {renameError && (
+                      <p className="mt-2 text-xs text-rose-600">{renameError}</p>
+                    )}
+                  </form>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setRenameTarget(null)}
+                  disabled={renamingKey === renameTarget.Key}
+                  className="rounded-xl px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-white/60 disabled:opacity-60"
+                >
+                  取消
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmRename}
+                  disabled={renamingKey === renameTarget.Key}
+                  className="rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-amber-500/20 transition hover:bg-amber-600 disabled:cursor-wait disabled:opacity-60"
+                >
+                  {renamingKey === renameTarget.Key ? "修改中" : "确认修改"}
                 </button>
               </div>
             </motion.div>
