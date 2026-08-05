@@ -1,18 +1,71 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 :root {
-  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
-  color: #172033;
-  background: #e9f2ff;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --background: 210 60% 96%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100% / 0.44;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100% / 0.76;
+  --popover-foreground: 222 47% 11%;
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 40% 92%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 210 40% 92%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214 32% 88%;
+  --input: 214 32% 88%;
+  --ring: 221 83% 53%;
+  --radius: 0.75rem;
+  --chart-1: 221 83% 53%;
+  --chart-2: 262 83% 58%;
+  --chart-3: 316 70% 50%;
+  --chart-4: 43 96% 56%;
+  --chart-5: 160 84% 39%;
+}
+
+.dark {
+  --background: 222 47% 7%;
+  --foreground: 210 40% 98%;
+  --card: 222 47% 10% / 0.6;
+  --card-foreground: 210 40% 98%;
+  --popover: 222 47% 10% / 0.8;
+  --popover-foreground: 210 40% 98%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 222 47% 7%;
+  --secondary: 217 33% 17%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 217 33% 17%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217 33% 20%;
+  --input: 217 33% 20%;
+  --ring: 217 91% 60%;
+}
+
+* {
+  border-color: hsl(var(--border));
 }
 
 body {
   margin: 0;
   min-width: 320px;
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -20,20 +73,11 @@ body {
 }
 
 @media (min-width: 1024px) {
-  body {
-    overflow: hidden;
-  }
-
-  #root {
-    height: 100vh;
-    overflow: hidden;
-  }
+  body { overflow: hidden; }
+  #root { height: 100vh; overflow: hidden; }
 }
 
-button,
-input {
-  font: inherit;
-}
+button, input { font: inherit; }
 
 code {
   margin: 0 2px;
@@ -45,9 +89,9 @@ code {
   font-size: 0.93em;
 }
 
-::selection {
-  background: #cfe5ff;
-}
+::selection { background: #cfe5ff; }
+
+/* ---- Glass-morphism Design System (融合 shadcn 变量) ---- */
 
 .liquid-stage {
   position: relative;
@@ -80,24 +124,18 @@ code {
 .glass-modal {
   border: 1px solid rgba(255, 255, 255, 0.72);
   background: rgba(255, 255, 255, 0.44);
-  box-shadow:
-    0 24px 70px rgba(42, 74, 128, 0.09),
-    inset 0 1px 1px rgba(255, 255, 255, 0.85);
+  box-shadow: 0 24px 70px rgba(42, 74, 128, 0.09), inset 0 1px 1px rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(25px) saturate(155%);
 }
 
-.glass-modal {
-  background: rgba(250, 253, 255, 0.76);
-}
+.glass-modal { background: rgba(250, 253, 255, 0.76); }
 
 .glass-hero {
   border: 1px solid rgba(255, 255, 255, 0.76);
   background:
     linear-gradient(115deg, rgba(255, 255, 255, 0.57), rgba(255, 255, 255, 0.29)),
     radial-gradient(circle at 75% 25%, rgba(86, 158, 255, 0.24), transparent 34%);
-  box-shadow:
-    0 34px 90px rgba(52, 91, 157, 0.13),
-    inset 0 1px 2px rgba(255, 255, 255, 0.95);
+  box-shadow: 0 34px 90px rgba(52, 91, 157, 0.13), inset 0 1px 2px rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(28px) saturate(160%);
 }
 
@@ -108,44 +146,11 @@ code {
   backdrop-filter: blur(15px);
 }
 
-.glass-pill,
-.glass-highlight {
+.glass-pill {
   border: 1px solid rgba(255, 255, 255, 0.72);
   background: rgba(255, 255, 255, 0.43);
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(14px);
-}
-
-.glass-button {
-  border: 1px solid rgba(255, 255, 255, 0.78);
-  background: rgba(255, 255, 255, 0.43);
-  box-shadow:
-    0 8px 18px rgba(41, 76, 130, 0.06),
-    inset 0 1px 1px rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(18px);
-}
-
-.glass-button:hover {
-  background: rgba(255, 255, 255, 0.63);
-}
-
-.glass-primary,
-.glass-accent {
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.34);
-  background:
-    linear-gradient(140deg, rgba(45, 130, 255, 0.9), rgba(70, 105, 244, 0.78)),
-    rgba(33, 113, 241, 0.82);
-  box-shadow:
-    0 14px 32px rgba(37, 99, 235, 0.2),
-    inset 0 1px 1px rgba(255, 255, 255, 0.38);
-  backdrop-filter: blur(18px);
-}
-
-.glass-primary:hover {
-  background:
-    linear-gradient(140deg, rgba(37, 116, 244, 0.96), rgba(54, 90, 231, 0.9)),
-    rgba(33, 113, 241, 0.9);
 }
 
 .glass-input {
@@ -159,19 +164,14 @@ code {
   background:
     radial-gradient(circle at 50% 25%, rgba(255, 255, 255, 0.7), transparent 46%),
     rgba(255, 255, 255, 0.54);
-  box-shadow:
-    0 35px 110px rgba(35, 78, 151, 0.17),
-    inset 0 1px 2px rgba(255, 255, 255, 1);
+  box-shadow: 0 35px 110px rgba(35, 78, 151, 0.17), inset 0 1px 2px rgba(255, 255, 255, 1);
   backdrop-filter: blur(35px) saturate(170%);
 }
 
+/* ---- Hover Preview ---- */
+
 .preview-trigger:hover .preview-popover,
 .preview-trigger:focus-within .preview-popover {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.name-preview-text:hover + .preview-popover {
   opacity: 1;
   transform: translateY(0);
 }
@@ -180,35 +180,21 @@ code {
   transform: translateY(4px);
 }
 
+/* ---- Custom Scrollbar ---- */
+
 .pretty-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(85, 126, 188, 0.36) rgba(255, 255, 255, 0.22);
 }
 
-.pretty-scrollbar::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-.pretty-scrollbar::-webkit-scrollbar-track {
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22);
-}
-
+.pretty-scrollbar::-webkit-scrollbar { width: 10px; height: 10px; }
+.pretty-scrollbar::-webkit-scrollbar-track { border-radius: 999px; background: rgba(255, 255, 255, 0.22); }
 .pretty-scrollbar::-webkit-scrollbar-thumb {
   border: 2px solid rgba(255, 255, 255, 0.58);
   border-radius: 999px;
-  background:
-    linear-gradient(145deg, rgba(93, 154, 244, 0.62), rgba(112, 132, 219, 0.5)),
-    rgba(92, 122, 176, 0.42);
+  background: linear-gradient(145deg, rgba(93, 154, 244, 0.62), rgba(112, 132, 219, 0.5)), rgba(92, 122, 176, 0.42);
 }
-
 .pretty-scrollbar::-webkit-scrollbar-thumb:hover {
-  background:
-    linear-gradient(145deg, rgba(65, 134, 236, 0.78), rgba(92, 111, 207, 0.66)),
-    rgba(72, 104, 166, 0.55);
+  background: linear-gradient(145deg, rgba(65, 134, 236, 0.78), rgba(92, 111, 207, 0.66)), rgba(72, 104, 166, 0.55);
 }
-
-.pretty-scrollbar::-webkit-scrollbar-corner {
-  background: transparent;
-}
+.pretty-scrollbar::-webkit-scrollbar-corner { background: transparent; }
