@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { copyToClipboard } from "../utils/clipboard";
-import { createId } from "../utils/id";
-import { toast } from "../components/ui/toast";
+import { toast } from "../components/ui/sonner";
 
 export function useCopyToClipboard() {
   const [copiedText, setCopiedText] = useState("");
@@ -13,7 +12,7 @@ export function useCopyToClipboard() {
       setCopiedText(text);
       clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => setCopiedText(""), 1600);
-      toast("已复制到剪贴板");
+      toast.info("已复制到剪贴板");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "复制失败");
     }

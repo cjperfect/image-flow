@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { Search, RefreshCw, ArrowUp, ArrowDown, Eye, Pencil, Trash2, Copy, LayoutGrid, List } from "lucide-react";
+import { Search, RefreshCw, ArrowUp, ArrowDown, Eye, Pencil, Trash2, Copy, LayoutGrid, List, X } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../components/ui/table";
@@ -170,8 +170,17 @@ export default function ObjectTable({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="搜索名称"
-              className="w-[150px] pl-8 text-xs h-8"
+              className="w-[150px] pl-8 pr-7 text-xs h-8"
             />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm("")}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
 
           {connected && (

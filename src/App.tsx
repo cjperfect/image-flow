@@ -5,7 +5,7 @@ import UploadQueue from "./components/UploadQueue";
 import ObjectTable from "./components/ObjectTable";
 import ConnectionGuide from "./components/ConnectionGuide";
 import { useApp } from "./hooks/useApp";
-import { Toaster } from "./components/ui/toast";
+import { Toaster } from "./components/ui/sonner";
 
 export default function App() {
   const {

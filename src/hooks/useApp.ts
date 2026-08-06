@@ -8,7 +8,7 @@ import { compressImage } from "../lib/compress";
 import { useDragDrop } from "./useDragDrop";
 import { useCopyToClipboard } from "./useCopyToClipboard";
 import { createId } from "../utils/id";
-import { toast } from "../components/ui/toast";
+import { toast } from "../components/ui/sonner";
 import type { StorageConfig, StorageObject, UploadItem, CompressionMode, CloudProvider } from "../types";
 
 const MAX_PARALLEL_UPLOADS = 3;
@@ -286,7 +286,7 @@ export function useApp() {
       await renameObject(clientRef.current, activeConfigRef.current, folderRef.current.bucket, obj.Key, nextKey);
       const links = buildObjectLinks(activeConfigRef.current, folderRef.current.bucket, nextKey);
       dispatchConn({ type: "UPDATE_OBJECT", key: obj.Key, updates: { Key: nextKey, LastModified: new Date().toISOString(), ...links } });
-      toast("名称已更新");
+      toast.success("名称已更新");
     } finally {
       setPendingOps({ renamingKey: "" });
     }
@@ -298,7 +298,7 @@ export function useApp() {
     try {
       await deleteObject(clientRef.current, activeConfigRef.current, folderRef.current.bucket, obj.Key);
       dispatchConn({ type: "REMOVE_OBJECT", key: obj.Key });
-      toast("文件已删除");
+      toast.success("文件已删除");
     } catch (err) {
       toast.error(getErrorMessage(err, "删除失败"));
       throw err;
