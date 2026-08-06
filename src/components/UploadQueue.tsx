@@ -6,7 +6,10 @@ import { formatBytes } from "../utils/format";
 import EmptyState from "./EmptyState";
 import type { UploadItem, CompressionMode, UploadStatus } from "../types";
 
-const STATUS_CONFIG: Record<UploadStatus, { label: string; variant: "default" | "success" | "warning" | "destructive" }> = {
+const STATUS_CONFIG: Record<
+  UploadStatus,
+  { label: string; variant: "default" | "success" | "warning" | "destructive" }
+> = {
   queued: { label: "等待上传", variant: "default" },
   compressing: { label: "压缩中", variant: "warning" },
   uploading: { label: "上传中", variant: "warning" },
@@ -29,9 +32,17 @@ interface UploadQueueProps {
 }
 
 export default function UploadQueue({
-  items, copiedText, compressionMode, namingPrefix, namingStartIndex,
-  isUploading, onCompressionModeChange, onNamingPrefixChange,
-  onNamingStartIndexChange, onCopy, onSelectFiles,
+  items,
+  copiedText,
+  compressionMode,
+  namingPrefix,
+  namingStartIndex,
+  isUploading,
+  onCompressionModeChange,
+  onNamingPrefixChange,
+  onNamingStartIndexChange,
+  onCopy,
+  onSelectFiles,
 }: UploadQueueProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,7 +55,14 @@ export default function UploadQueue({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card">
-      <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFilesSelected} />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleFilesSelected}
+      />
 
       <div className="shrink-0 flex flex-col gap-3 p-4">
         <div className="flex items-start justify-between gap-3">
@@ -86,12 +104,14 @@ export default function UploadQueue({
 
         {/* Naming Settings */}
         <div className="flex items-center gap-2 text-xs">
-          <label htmlFor="naming-prefix" className="shrink-0 font-medium text-muted-foreground">命名</label>
+          <label htmlFor="naming-prefix" className="shrink-0 font-medium text-muted-foreground">
+            前缀
+          </label>
           <input
             id="naming-prefix"
             value={namingPrefix}
             onChange={(e) => onNamingPrefixChange(e.target.value)}
-            placeholder="前缀"
+            placeholder="若自动命名，前填写前缀"
             className="min-w-0 flex-1 rounded-md border border-border bg-card px-2 py-1.5 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/10"
           />
           <span className="text-muted-foreground">从</span>
@@ -104,6 +124,29 @@ export default function UploadQueue({
           />
           <span className="text-muted-foreground">开始</span>
         </div>
+
+        {namingPrefix.trim() && (
+          <div className="rounded-lg border border-border bg-muted/20 px-3 py-2">
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground/80">自动命名预览：</span>
+              <span className="font-mono text-foreground/70">
+                {namingPrefix}
+                {namingStartIndex}
+              </span>
+              <span className="text-muted-foreground/60">、</span>
+              <span className="font-mono text-foreground/70">
+                {namingPrefix}
+                {namingStartIndex + 1}
+              </span>
+              <span className="text-muted-foreground/60">、</span>
+              <span className="font-mono text-foreground/70">
+                {namingPrefix}
+                {namingStartIndex + 2}
+              </span>
+              <span className="text-muted-foreground/60"> …</span>
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Queue List */}
@@ -115,7 +158,7 @@ export default function UploadQueue({
                 key={item.id}
                 className={cn(
                   "rounded-xl border px-3 py-2.5 animate-in",
-                  item.status === "success" ? "border-emerald-200 bg-emerald-50/50" : "border-border bg-muted/20"
+                  item.status === "success" ? "border-emerald-200 bg-emerald-50/50" : "border-border bg-muted/20",
                 )}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -137,7 +180,9 @@ export default function UploadQueue({
                     onClick={() => onCopy(item.httpsUrl!)}
                     className={cn(
                       "mt-2.5 flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-1.5 text-left font-mono text-xs transition",
-                      copiedText === item.httpsUrl ? "border-emerald-200 bg-emerald-50/70 text-emerald-700" : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-primary"
+                      copiedText === item.httpsUrl
+                        ? "border-emerald-200 bg-emerald-50/70 text-emerald-700"
+                        : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-primary",
                     )}
                   >
                     <span className="min-w-0 truncate">{item.httpsUrl}</span>
