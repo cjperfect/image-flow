@@ -1,10 +1,16 @@
 import { useState } from "react";
 import { X, HelpCircle, Maximize2 } from "lucide-react";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from "./ui/dialog";
 import { Button } from "./ui/button";
-import { cn } from "../lib/utils";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "./ui/drawer";
+import ImagePreviewModal from "./ImagePreviewModal";
 
 const STEPS = [
   {
@@ -30,43 +36,36 @@ export default function ConnectionGuide() {
 
   return (
     <>
-      {/* Floating trigger button */}
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="fixed right-0 top-1/2 z-20 -translate-y-1/2 rounded-l-xl border border-r-0 border-border bg-card px-2.5 py-4 shadow-md transition-all hover:shadow-lg hover:bg-muted/50"
-        title="连接说明"
-      >
-        <span className="flex flex-col items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          <HelpCircle className="h-4 w-4" />
-          <span className="[writing-mode:vertical-rl] tracking-wider">连接说明</span>
-        </span>
-      </button>
+      <Drawer direction="right" open={open} onOpenChange={setOpen}>
+        <DrawerTrigger asChild>
+          <button
+            type="button"
+            className="fixed right-0 top-1/2 z-20 -translate-y-1/2 rounded-l-xl border border-r-0 border-border bg-card px-2.5 py-4 shadow-md transition-all hover:shadow-lg hover:bg-muted/50"
+            title="连接说明"
+          >
+            <span className="flex flex-col items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <HelpCircle className="h-4 w-4" />
+              <span className="[writing-mode:vertical-rl] tracking-wider">连接说明</span>
+            </span>
+          </button>
+        </DrawerTrigger>
 
-      {/* Overlay */}
-      {open && (
-        <div className="fixed inset-0 z-40 bg-foreground/20 transition-opacity" onClick={() => setOpen(false)} />
-      )}
-
-      {/* Drawer */}
-      <div
-        className={cn(
-          "fixed right-0 top-0 z-50 h-full w-full max-w-[480px] border-l border-border bg-card shadow-xl transition-transform duration-300",
-          open ? "translate-x-0" : "translate-x-full"
-        )}
-      >
-        <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between border-b border-border px-6 py-5">
-            <div>
-              <h2 className="font-display text-xl tracking-tight">连接说明</h2>
-              <p className="mt-1 text-sm text-muted-foreground">如何获取 OBS / OSS 的连接信息</p>
+        <DrawerContent className="inset-y-0 right-0 left-auto mt-0 h-full max-w-[480px] rounded-l-[10px] rounded-t-none">
+          <DrawerHeader className="text-left">
+            <div className="flex items-center justify-between">
+              <div>
+                <DrawerTitle>连接说明</DrawerTitle>
+                <DrawerDescription>如何获取 OBS / OSS 的连接信息</DrawerDescription>
+              </div>
+              <DrawerClose asChild>
+                <Button variant="ghost" size="icon-sm">
+                  <X className="h-4 w-4" />
+                </Button>
+              </DrawerClose>
             </div>
-            <Button variant="ghost" size="icon-sm" onClick={() => setOpen(false)}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          </DrawerHeader>
 
-          <div className="pretty-scrollbar flex-1 overflow-auto px-6 py-6">
+          <div className="pretty-scrollbar flex-1 overflow-auto px-6 pb-6">
             <div className="space-y-10">
               {STEPS.map((step, i) => (
                 <div key={step.title}>
@@ -101,26 +100,15 @@ export default function ConnectionGuide() {
               ))}
             </div>
           </div>
-        </div>
-      </div>
+        </DrawerContent>
+      </Drawer>
 
-      {/* Image Preview Dialog */}
-      <Dialog open={!!previewImg} onOpenChange={(v) => !v && setPreviewImg(null)}>
-        <DialogContent className="max-w-[90vw] max-h-[90vh] p-4">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-medium">{previewImg?.alt}</DialogTitle>
-          </DialogHeader>
-          <div className="flex items-center justify-center overflow-hidden rounded-xl bg-muted/30">
-            {previewImg && (
-              <img
-                src={previewImg.src}
-                alt={previewImg.alt}
-                className="max-h-[75vh] w-full object-contain"
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ImagePreviewModal
+        open={!!previewImg}
+        src={previewImg?.src ?? ""}
+        alt={previewImg?.alt ?? ""}
+        onClose={() => setPreviewImg(null)}
+      />
     </>
   );
 }

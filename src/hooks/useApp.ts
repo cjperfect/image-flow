@@ -158,6 +158,7 @@ export function useApp() {
         const saved = await loadCredentials();
         if (!mounted) return;
         if (!saved) {
+          dispatchConn({ type: "RESTORE_CONFIG", payload: initialConfig });
           dispatchConn({ type: "SET_NOTICE", notice: "" });
           dispatchConn({ type: "TOGGLE_CONFIG", open: true });
           return;
