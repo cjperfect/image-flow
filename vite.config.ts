@@ -50,7 +50,7 @@ function createStorageProxy(prefix: string) {
 
 export default defineConfig(({ mode }) => {
   return {
-    base: mode === "development" ? "/" : "/image-flow/",
+    base: mode === "development" ? "/" : "./",
     build: {
       outDir: "image-flow",
     },

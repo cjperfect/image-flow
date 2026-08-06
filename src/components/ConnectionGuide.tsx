@@ -12,21 +12,23 @@ import {
 } from "./ui/drawer";
 import ImagePreviewModal from "./ImagePreviewModal";
 
+const BASE = import.meta.env.BASE_URL;
+
 const STEPS = [
   {
     title: "获取 Access Key",
     desc: "登录华为云 OBS 控制台，在「我的凭证」中创建 Access Key ID 和 Secret Access Key。",
-    img: "/api-key.png",
+    img: `${BASE}api-key.png`,
   },
   {
     title: "OBS 文件夹地址",
     desc: "在 OBS 控制台进入目标 Bucket，复制文件夹路径，格式为 obs://bucket-name/path/。",
-    img: "/obs-folder.png",
+    img: `${BASE}obs-folder.png`,
   },
   {
     title: "OSS 文件夹地址",
     desc: "阿里云 OSS 用户：进入 Bucket 概览页获取 Endpoint，复制文件夹路径格式为 oss://bucket-name/path/。",
-    img: "/oss-folder.png",
+    img: `${BASE}oss-folder.png`,
   },
 ];
 
