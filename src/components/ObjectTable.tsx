@@ -1,11 +1,11 @@
 import { useState, useMemo, useCallback } from "react";
-import { Search, RefreshCw, ArrowUp, ArrowDown, Eye, Pencil, Trash2, Copy, LayoutGrid, List, X } from "lucide-react";
+import { Search, RefreshCw, ArrowUp, ArrowDown, Eye, Pencil, Trash2, Copy, LayoutGrid, List, X, Download } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../components/ui/table";
 import { cn } from "../lib/utils";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
-import { formatBytes, formatDate, getFileName } from "../utils/format";
+import { formatBytes, formatDate, getFileName, downloadFile } from "../utils/format";
 import ImagePreviewModal from "./ImagePreviewModal";
 import ConfirmDialog from "./ConfirmDialog";
 import EmptyState from "./EmptyState";
@@ -255,6 +255,9 @@ export default function ObjectTable({
                       <Button variant="ghost" size="icon-sm" onClick={() => setPreview({ src: obj.httpsUrl!, alt: fileName })} title="预览">
                         <Eye className="h-3.5 w-3.5 text-blue-500" />
                       </Button>
+                      <Button variant="ghost" size="icon-sm" onClick={() => downloadFile(obj.httpsUrl!, getFileName(obj.Key))} title="下载">
+                        <Download className="h-3.5 w-3.5 text-green-500" />
+                      </Button>
                       <Button variant="ghost" size="icon-sm" onClick={() => openRename(obj)} disabled={renamingKey === obj.Key} title="重命名">
                         <Pencil className="h-3.5 w-3.5 text-amber-500" />
                       </Button>
@@ -333,6 +336,9 @@ export default function ObjectTable({
                         <div className="flex items-center justify-end gap-1">
                           <Button variant="ghost" size="icon-sm" onClick={() => setPreview({ src: obj.httpsUrl!, alt: fileName })} title="预览">
                             <Eye className="h-3.5 w-3.5 text-blue-500" />
+                          </Button>
+                          <Button variant="ghost" size="icon-sm" onClick={() => downloadFile(obj.httpsUrl!, getFileName(obj.Key))} title="下载">
+                            <Download className="h-3.5 w-3.5 text-green-500" />
                           </Button>
                           <Button variant="ghost" size="icon-sm" onClick={() => openRename(obj)} disabled={renamingKey === obj.Key} title="重命名">
                             <Pencil className="h-3.5 w-3.5 text-amber-500" />

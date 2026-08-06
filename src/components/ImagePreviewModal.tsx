@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Download } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "../components/ui/dialog";
@@ -7,6 +7,7 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { useImagePreview } from "../hooks/useImagePreview";
 import { cn } from "../lib/utils";
+import { downloadFile } from "../utils/format";
 
 interface ImagePreviewModalProps {
   open: boolean;
@@ -36,6 +37,9 @@ export default function ImagePreviewModal({ open, src, alt, onClose }: ImagePrev
           <DialogTitle className="truncate text-sm font-medium text-foreground">{alt}</DialogTitle>
           <div className="flex items-center gap-2">
             <Badge variant="outline">{Math.round(preview.scale * 100)}%</Badge>
+            <Button variant="ghost" size="icon-sm" onClick={() => downloadFile(src, alt)} title="下载">
+              <Download className="h-4 w-4" />
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => preview.fitToViewport()}>重置</Button>
             <Button variant="ghost" size="icon-sm" onClick={handleClose}><X className="h-4 w-4" /></Button>
           </div>
