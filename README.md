@@ -13,10 +13,25 @@
 ## 本地运行
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
+
+## 桌面应用打包
+
+使用 Tauri 将 Web 应用打包为桌面应用，支持 Windows (exe/msi) 和 macOS (dmg)。
+
+```bash
+# 打包当前平台
+pnpm tauri build
+
+# 仅打包指定格式
+pnpm tauri build --bundles msi    # Windows MSI
+pnpm tauri build --bundles dmg    # macOS DMG
+```
+
+**macOS 打包**需在 macOS 系统上运行，否则可通过 GitHub Actions 自动构建（推送代码后在 Actions 页面下载 DMG）。
 
 ## 技术栈
 
-React、Tailwind CSS、Motion for React、华为云 OBS BrowserJS SDK、阿里云 OSS SDK（ali-oss）。
+React、Tailwind CSS、Vite、Tauri、华为云 OBS BrowserJS SDK、阿里云 OSS SDK（ali-oss）。
