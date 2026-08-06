@@ -50,9 +50,9 @@ function createStorageProxy(prefix: string) {
 
 export default defineConfig(({ mode }) => {
   return {
-    base: mode === "development" ? "/" : "/img-zip/",
+    base: mode === "development" ? "/" : "/image-flow/",
     build: {
-      outDir: "docs",
+      outDir: "image-flow",
     },
     resolve: {
       alias: {
