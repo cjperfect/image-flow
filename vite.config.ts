@@ -66,6 +66,9 @@ export default defineConfig(({ mode }) => {
       createStorageProxy("/api/oss-proxy/"),
     ],
     server: {
+      watch: {
+        ignored: ["**/src-tauri/target/**"],
+      },
       proxy: {
         "/api/tinypng": {
           target: "https://tinypng.com",

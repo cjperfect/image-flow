@@ -20,6 +20,11 @@
     "@radix-ui/react-tooltip": "^1.2.16",
     "@radix-ui/react-visually-hidden": "^1.2.11",
     "@tailwindcss/vite": "^4.3.0",
+<<<<<<< Updated upstream
+=======
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-store": "^2",
+>>>>>>> Stashed changes
     "ali-oss": "^6.23.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

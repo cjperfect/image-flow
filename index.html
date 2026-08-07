@@ -11,6 +11,12 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Apply dropzone class immediately to prevent flash of opaque background
+      if (window.location.search.includes('window=dropzone')) {
+        document.documentElement.classList.add('dropzone');
+      }
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

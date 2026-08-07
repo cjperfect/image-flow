@@ -1,4 +1,6 @@
-import { useEffect, useRef, useReducer, useCallback } from "react";
+import { useEffect, useRef, useReducer, useCallback, useState } from "react";
+import { listen } from "@tauri-apps/api/event";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { loadCredentials, saveCredentials } from "../lib/credentialVault";
 import { loadCompressionMode, saveCompressionMode } from "../lib/compressionPreference";
 import { clearFolderHistory, loadFolderHistory, removeFolderFromHistory, saveFolderToHistory } from "../lib/folderHistory";
@@ -110,6 +112,27 @@ function uploadReducer(state: UploadState, action: UploadAction): UploadState {
   }
 }
 
+// ─── Helpers ─────────────────────────────────────────
+
+interface DropFilePayload {
+  name: string;
+  size: number;
+  type: string;
+  base64: string;
+}
+
+function base64ToFile({ name, type, base64 }: DropFilePayload): File {
+  const arr = base64.split(",");
+  const mime = arr[0].match(/:(.*?);/)![1];
+  const bstr = atob(arr[1]);
+  const n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    u8arr[i] = bstr.charCodeAt(i);
+  }
+  return new File([u8arr], name, { type: mime });
+}
+
 // ─── Hook ────────────────────────────────────────────
 
 export function useApp() {
@@ -128,16 +151,30 @@ export function useApp() {
     queue: [], isUploading: false, activeBatches: 0,
   });
 
-  const [prefs, setPrefs] = useReducer(
-    (s: { compressionMode: CompressionMode; folderHistory: string[]; namingPrefix: string; namingStartIndex: number },
-     a: Partial<typeof s>) => ({ ...s, ...a }),
-    {
-      compressionMode: loadCompressionMode(),
-      folderHistory: loadFolderHistory(),
-      namingPrefix: loadNamingPrefix(),
-      namingStartIndex: loadNamingStartIndex(),
-    }
-  );
+  const [prefs, setPrefs] = useState<{
+    compressionMode: CompressionMode;
+    folderHistory: string[];
+    namingPrefix: string;
+    namingStartIndex: number;
+  }>({
+    compressionMode: "tinypng",
+    folderHistory: [],
+    namingPrefix: "",
+    namingStartIndex: 1,
+  });
+
+  // Load persisted prefs asynchronously
+  useEffect(() => {
+    (async () => {
+      const [mode, history, prefix, index] = await Promise.all([
+        loadCompressionMode(),
+        loadFolderHistory(),
+        loadNamingPrefix(),
+        loadNamingStartIndex(),
+      ]);
+      setPrefs({ compressionMode: mode, folderHistory: history, namingPrefix: prefix, namingStartIndex: index });
+    })();
+  }, []);
 
   const [pendingOps, setPendingOps] = useReducer(
     (s: { renamingKey: string; deletingKey: string }, a: Partial<{ renamingKey: string; deletingKey: string }>) => ({ ...s, ...a }),
@@ -172,7 +209,8 @@ export function useApp() {
         folderRef.current = folder;
         activeConfigRef.current = { ...initialConfig, ...saved };
         dispatchConn({ type: "CONNECTION_SUCCESS", folderUrl: saved.folderUrl.trim(), objects: items.map((item) => ({ ...item, ...buildObjectLinks({ ...initialConfig, ...saved }, folder.bucket, item.Key) })), notice: `已自动连接 ${folder.bucket}，读取到 ${items.length} 个文件` });
-        setPrefs({ folderHistory: saveFolderToHistory(saved.folderUrl) });
+        const history = await saveFolderToHistory(saved.folderUrl);
+        setPrefs((prev) => ({ ...prev, folderHistory: history }));
       } catch (err) {
         if (!mounted) return;
         const msg = getErrorMessage(err, "自动连接失败");
@@ -199,7 +237,8 @@ export function useApp() {
       folderRef.current = folder;
       activeConfigRef.current = { ...cfg };
       await saveCredentials(cfg);
-      setPrefs({ folderHistory: saveFolderToHistory(cfg.folderUrl) });
+      const history = await saveFolderToHistory(cfg.folderUrl);
+      setPrefs((prev) => ({ ...prev, folderHistory: history }));
       dispatchConn({ type: "CONNECTION_SUCCESS", folderUrl: cfg.folderUrl.trim(), objects: items.map((item) => ({ ...item, ...buildObjectLinks(cfg, folder.bucket, item.Key) })), notice: `已连接 ${folder.bucket}，读取到 ${items.length} 个文件，凭据已保存` });
     } catch (err) {
       dispatchConn({ type: "CONNECTION_ERROR", message: getErrorMessage(err, "连接失败") });
@@ -310,15 +349,94 @@ export function useApp() {
   // ─── Prefs ────────────────────────────────────────
 
   const updatePref = useCallback(<K extends keyof typeof prefs>(key: K, value: typeof prefs[K]) => {
-    setPrefs({ [key]: value });
-    if (key === "compressionMode") saveCompressionMode(value as CompressionMode);
-    if (key === "namingPrefix") saveNamingPrefix(value as string);
-    if (key === "namingStartIndex") saveNamingStartIndex(value as number);
+    setPrefs((prev) => ({ ...prev, [key]: value }));
+    if (key === "compressionMode") void saveCompressionMode(value as CompressionMode);
+    if (key === "namingPrefix") void saveNamingPrefix(value as string);
+    if (key === "namingStartIndex") void saveNamingStartIndex(value as number);
   }, []);
 
   // ─── Drag & Drop ──────────────────────────────────
 
   const { isDragging, handleDragEnter, handleDragOver, handleDragLeave, handleDrop } = useDragDrop(addFiles);
+
+  // Ref to avoid re-registering Tauri event listener when addFiles changes
+  const addFilesRef = useRef(addFiles);
+  addFilesRef.current = addFiles;
+
+  // ── Drop Zone visibility from global mouse hook ────
+
+  useEffect(() => {
+    let unlistenEnter: (() => void) | undefined;
+    let unlistenLeave: (() => void) | undefined;
+
+    (async () => {
+      try {
+        unlistenEnter = await listen("imageflow:drag-enter", async () => {
+          console.log("[dropzone] drag-enter received");
+          try {
+            const dropWin = await WebviewWindow.getByLabel("dropzone");
+            if (dropWin) {
+              console.log("[dropzone] showing window");
+              await dropWin.show();
+              await dropWin.setAlwaysOnTop(true);
+            } else {
+              console.log("[dropzone] window not found");
+            }
+          } catch (e) { console.error("[dropzone] show error:", e); }
+        });
+
+        unlistenLeave = await listen("imageflow:drag-leave", async () => {
+          console.log("[dropzone] drag-leave received");
+          try {
+            const dropWin = await WebviewWindow.getByLabel("dropzone");
+            if (dropWin) {
+              console.log("[dropzone] hiding window");
+              await dropWin.hide();
+            }
+          } catch (e) { console.error("[dropzone] hide error:", e); }
+        });
+      } catch { /* Tauri API not available */ }
+    })();
+
+    return () => {
+      if (unlistenEnter) unlistenEnter();
+      if (unlistenLeave) unlistenLeave();
+    };
+  }, []);
+
+  // ── Listen for file drops from the desktop drop-zone window ──
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+
+    (async () => {
+      try {
+        unlisten = await listen<DropFilePayload[]>("imageflow:drop", (event) => {
+          const payload = event.payload;
+          if (!payload || !payload.length) return;
+
+          // Filter image files and convert base64 to File objects
+          const files = payload
+            .filter((f) => f.type.startsWith("image/"))
+            .map(base64ToFile);
+
+          if (!files.length) return;
+
+          // Create a FileList via DataTransfer
+          const dt = new DataTransfer();
+          files.forEach((f) => dt.items.add(f));
+
+          addFilesRef.current(dt.files);
+        });
+      } catch {
+        // Tauri API not available (e.g., running in browser dev mode)
+      }
+    })();
+
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, []);
 
   // ─── Derived ──────────────────────────────────────
 

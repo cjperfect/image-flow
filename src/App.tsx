@@ -79,8 +79,14 @@ export default function App() {
           onChange={(field, value) => dispatchConn({ type: "SET_CONFIG", field, value })}
           onConnect={connectAndList}
           onClose={() => dispatchConn({ type: "TOGGLE_CONFIG", open: false })}
-          onClearFolderHistory={() => setPrefs({ folderHistory: clearFolderHistory(conn.activeFolderUrl) })}
-          onDeleteFolderHistoryItem={(url) => setPrefs({ folderHistory: removeFolderFromHistory(url) })}
+          onClearFolderHistory={async () => {
+            const history = await clearFolderHistory(conn.activeFolderUrl);
+            setPrefs((prev) => ({ ...prev, folderHistory: history }));
+          }}
+          onDeleteFolderHistoryItem={async (url) => {
+            const history = await removeFolderFromHistory(url);
+            setPrefs((prev) => ({ ...prev, folderHistory: history }));
+          }}
         />
         <DropOverlay activeFolderUrl={conn.activeFolderUrl} visible={isDragging} />
         <Toaster />

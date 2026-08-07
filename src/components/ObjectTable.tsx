@@ -1,5 +1,11 @@
+<<<<<<< Updated upstream
 import { useState, useMemo, useCallback } from "react";
 import { Search, RefreshCw, ArrowUp, ArrowDown, Eye, Pencil, Trash2, Copy, LayoutGrid, List } from "lucide-react";
+=======
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { getItem, setItem } from "../lib/persist";
+import { Search, RefreshCw, ArrowUp, ArrowDown, Eye, Pencil, Trash2, Copy, LayoutGrid, List, X, Download } from "lucide-react";
+>>>>>>> Stashed changes
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../components/ui/table";
@@ -34,20 +40,21 @@ export default function ObjectTable({
 }: ObjectTableProps) {
   const [timeSort, setTimeSort] = useState<SortDirection>("desc");
   const [searchTerm, setSearchTerm] = useState("");
-  const [copyMode, setCopyMode] = useState<CopyMode>(() => {
-    try {
-      const stored = localStorage.getItem("obs-copy-mode");
-      if (stored === "url" || stored === "css") return stored;
-      return "css";
-    } catch { return "css"; }
-  });
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    try {
-      const stored = localStorage.getItem("obs-view-mode");
-      if (stored === "card" || stored === "table") return stored;
-      return "table";
-    } catch { return "table"; }
-  });
+  const [copyMode, setCopyMode] = useState<CopyMode>("css");
+  const [viewMode, setViewMode] = useState<ViewMode>("table");
+
+  useEffect(() => {
+    (async () => {
+      const stored = await getItem("obs-copy-mode");
+      if (stored === "url" || stored === "css") setCopyMode(stored);
+    })();
+  }, []);
+  useEffect(() => {
+    (async () => {
+      const stored = await getItem("obs-view-mode");
+      if (stored === "card" || stored === "table") setViewMode(stored);
+    })();
+  }, []);
   const [preview, setPreview] = useState<{ src: string; alt: string } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<StorageObject | null>(null);
   const [renameTarget, setRenameTarget] = useState<StorageObject | null>(null);
@@ -68,11 +75,11 @@ export default function ObjectTable({
   const toggleSort = useCallback(() => setTimeSort((s) => (s === "desc" ? "asc" : "desc")), []);
   const handleCopyMode = useCallback((mode: CopyMode) => {
     setCopyMode(mode);
-    localStorage.setItem("obs-copy-mode", mode);
+    void setItem("obs-copy-mode", mode);
   }, []);
   const handleViewMode = useCallback((mode: ViewMode) => {
     setViewMode(mode);
-    localStorage.setItem("obs-view-mode", mode);
+    void setItem("obs-view-mode", mode);
   }, []);
 
   function getCopyValue(obj: StorageObject) {

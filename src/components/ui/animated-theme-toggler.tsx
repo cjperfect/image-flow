@@ -3,6 +3,7 @@ import { Moon, Sun } from "lucide-react"
 import { flushSync } from "react-dom"
 
 import { cn } from "@/lib/utils"
+import { setItem } from "@/lib/persist"
 
 export type TransitionVariant =
   | "circle"
@@ -221,7 +222,7 @@ export const AnimatedThemeToggler = ({
         onThemeChange?.(newTheme ? "dark" : "light")
       } else {
         setInternalIsDark(newTheme)
-        localStorage.setItem("theme", newTheme ? "dark" : "light")
+        void setItem("theme", newTheme ? "dark" : "light")
       }
     }
 

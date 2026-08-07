@@ -1,4 +1,5 @@
 import type { CloudProvider, StorageConfig } from '../types';
+import { getItem, setItem, removeItem } from './persist';
 
 const STORAGE_KEY = 'lanhu-assets.credentials.v5';
 const LEGACY_STORAGE_KEYS = ['lanhu-assets.credentials.v4', 'lanhu-assets.credentials.v3', 'lanhu-assets.credentials.v2'];
@@ -50,8 +51,8 @@ function decryptText(value: string, salt: string): string {
   return decoder.decode(transformText(base64ToBytes(value || ''), salt));
 }
 
-function removeLegacyCredentials(): void {
-  LEGACY_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+async function removeLegacyCredentials(): Promise<void> {
+  await Promise.all(LEGACY_STORAGE_KEYS.map((key) => removeItem(key)));
 }
 
 interface VaultData {
@@ -66,7 +67,7 @@ interface VaultData {
 
 export async function saveCredentials(credentials: StorageConfig): Promise<void> {
   const salt = createSalt();
-  localStorage.setItem(
+  await setItem(
     STORAGE_KEY,
     JSON.stringify({
       version: 5,
@@ -78,11 +79,11 @@ export async function saveCredentials(credentials: StorageConfig): Promise<void>
       secretAccessKey: encryptText(credentials.secretAccessKey, salt),
     }),
   );
-  removeLegacyCredentials();
+  await removeLegacyCredentials();
 }
 
 export async function loadCredentials(): Promise<StorageConfig | null> {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  const raw = await getItem(STORAGE_KEY);
   if (raw) {
     try {
       const vault: VaultData = JSON.parse(raw);
@@ -94,11 +95,12 @@ export async function loadCredentials(): Promise<StorageConfig | null> {
         secretAccessKey: decryptText(vault.secretAccessKey, vault.salt),
       };
     } catch {
-      localStorage.removeItem(STORAGE_KEY);
+      await removeItem(STORAGE_KEY);
       return null;
     }
   }
 
+  // Fallback: try legacy keys (sync localStorage reads are fine since they're fast)
   const legacyRaw = LEGACY_STORAGE_KEYS.map((key) => localStorage.getItem(key)).find(Boolean);
   if (!legacyRaw) return null;
 
@@ -106,7 +108,7 @@ export async function loadCredentials(): Promise<StorageConfig | null> {
     const legacyVault = JSON.parse(legacyRaw);
     return legacyVault.credentials || null;
   } catch {
-    removeLegacyCredentials();
+    await removeLegacyCredentials();
     return null;
   }
 }

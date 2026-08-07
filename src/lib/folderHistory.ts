@@ -1,36 +1,40 @@
+import { getItem, setItem, removeItem } from './persist';
+
 const STORAGE_KEY = 'lanhu-assets.obs-folder-history.v1';
 const MAX_HISTORY_ITEMS = 10;
 
-export function loadFolderHistory(): string[] {
+export async function loadFolderHistory(): Promise<string[]> {
   try {
-    const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    const raw = await getItem(STORAGE_KEY);
+    const history = JSON.parse(raw || '[]');
     return Array.isArray(history) ? history.filter((item): item is string => typeof item === 'string') : [];
   } catch {
-    localStorage.removeItem(STORAGE_KEY);
+    await removeItem(STORAGE_KEY);
     return [];
   }
 }
 
-export function saveFolderToHistory(folderUrl: string): string[] {
+export async function saveFolderToHistory(folderUrl: string): Promise<string[]> {
   const normalizedUrl = folderUrl.trim();
   if (!normalizedUrl) return loadFolderHistory();
 
+  const current = await loadFolderHistory();
   const history = [
     normalizedUrl,
-    ...loadFolderHistory().filter((item) => item !== normalizedUrl),
+    ...current.filter((item) => item !== normalizedUrl),
   ].slice(0, MAX_HISTORY_ITEMS);
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  await setItem(STORAGE_KEY, JSON.stringify(history));
   return history;
 }
 
-export function removeFolderFromHistory(folderUrl: string): string[] {
-  const history = loadFolderHistory().filter((item) => item !== folderUrl);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+export async function removeFolderFromHistory(folderUrl: string): Promise<string[]> {
+  const history = (await loadFolderHistory()).filter((item) => item !== folderUrl);
+  await setItem(STORAGE_KEY, JSON.stringify(history));
   return history;
 }
 
-export function clearFolderHistory(preservedFolderUrl = ''): string[] {
-  localStorage.removeItem(STORAGE_KEY);
+export async function clearFolderHistory(preservedFolderUrl = ''): Promise<string[]> {
+  await removeItem(STORAGE_KEY);
   return preservedFolderUrl ? saveFolderToHistory(preservedFolderUrl) : [];
 }
