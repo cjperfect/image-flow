@@ -158,7 +158,9 @@ export default function UploadQueue({
                 key={item.id}
                 className={cn(
                   "rounded-xl border px-3 py-2.5 animate-in",
-                  item.status === "success" ? "border-emerald-200 bg-emerald-50/50" : "border-border bg-muted/20",
+                  item.status === "success"
+                    ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/30"
+                    : "border-border bg-muted/20",
                 )}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -181,7 +183,7 @@ export default function UploadQueue({
                     className={cn(
                       "mt-2.5 flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-1.5 text-left font-mono text-xs transition",
                       copiedText === item.httpsUrl
-                        ? "border-emerald-200 bg-emerald-50/70 text-emerald-700"
+                        ? "border-emerald-200 bg-emerald-50/70 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400"
                         : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-primary",
                     )}
                   >
