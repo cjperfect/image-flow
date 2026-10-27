@@ -52,7 +52,7 @@ export default defineConfig(({ mode }) => {
   return {
     base: mode === "development" ? "/" : "./",
     build: {
-      outDir: "image-flow",
+      outDir: "docs",
     },
     resolve: {
       alias: {

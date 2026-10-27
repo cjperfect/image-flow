@@ -1,4 +1,5 @@
 import { Settings, Sun, Moon, ImageUp, Wand2, CloudUpload, ChevronRight } from "lucide-react";
+import GithubIcon from "./icons/GithubIcon";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { AnimatedThemeToggler } from "../components/ui/animated-theme-toggler";
@@ -72,6 +73,15 @@ export default function AppHeader({ activeFolderUrl, connected, onOpenConfig, pr
           <span className={`h-1.5 w-1.5 rounded-full mr-1 ${connected ? "bg-emerald-500" : "bg-muted-foreground"}`} />
           {connected ? `${providerLabel} 已连接` : "尚未连接"}
         </Badge>
+        <a
+          href="https://github.com/cjperfect/image-flow"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub 仓库"
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-colors hover:bg-accent"
+        >
+          <GithubIcon size={16} />
+        </a>
         <AnimatedThemeToggler className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-colors hover:bg-accent">
           <Sun className="h-2 w-2 dark:hidden" />
           <Moon className="hidden h-2 w-2 dark:block" />
